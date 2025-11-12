@@ -4,9 +4,6 @@ from flask import Flask, jsonify, make_response, send_from_directory
 from flask_cors import CORS
 
 app = Flask(__name__)
-
-# --- EXPLICIT CORS CONFIGURATION ---
-# This is the most reliable way to fix the connection issue.
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # ----- Resolve CSV path safely -----
