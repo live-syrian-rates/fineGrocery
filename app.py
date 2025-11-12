@@ -6,8 +6,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 
 # --- EXPLICIT CORS CONFIGURATION ---
-# This is the most reliable way to fix the connection issue.
-# It allows your frontend to talk to your backend.
+# This allows your frontend to talk to your backend.
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # ----- Resolve CSV path safely -----
