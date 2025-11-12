@@ -1,10 +1,14 @@
 # app.py — minimal & robust Flask server
 import os, csv, json, re
-from flask import Flask, jsonify, make_response, send_from_directory
-from flask_cors import CORS # Make sure this import is here
+from flask import Flask, jsonify, make_response
+from flask import send_from_directory
+
+
+
+# ... (the rest of your code) ...
 
 app = Flask(__name__)
-CORS(app) # <-- THIS LINE IS CRITICAL
+CORS(app) # <-- ADD THIS LINE RIGHT HERE
 
 # ----- Resolve CSV path safely (works no matter where you run from)
 HERE = os.path.dirname(os.path.abspath(__file__))          # ...\backend
@@ -17,7 +21,7 @@ CANDIDATES = [
 ]
 CSV_PATH = next((p for p in CANDIDATES if p and os.path.exists(p)), None)
 
-# ---- Cleaning helpers ----
+# ---- Cleaning helpers
 _ARABIC_INDIC = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
 
 def strip_citations(s: str) -> str:
@@ -38,7 +42,6 @@ def clean_price(raw: str) -> float:
         return 0.0
     return float(m.group(0).replace(",", "."))
 
-# ----- Routes -----
 @app.get("/health")
 def health():
     return {"ok": True, "csv": CSV_PATH or "NOT FOUND"}
@@ -72,6 +75,8 @@ def products():
         return jsonify(rows)
     except Exception as e:
         return make_response((f"/products failed: {e}", 500))
+
+# ... all your other routes like /products ...
 
 if __name__ == "__main__":
     # Run in debug so you see tracebacks if anything goes wrong
