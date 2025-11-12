@@ -5,7 +5,10 @@ from flask import send_from_directory
 
 
 
+# ... (the rest of your code) ...
+
 app = Flask(__name__)
+CORS(app) # <-- ADD THIS LINE RIGHT HERE
 
 # ----- Resolve CSV path safely (works no matter where you run from)
 HERE = os.path.dirname(os.path.abspath(__file__))          # ...\backend
