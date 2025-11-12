@@ -72,9 +72,7 @@ def products():
 
 # ... all your other routes like /products ...
 
-@app.get("/health")
-def health():
-    return {"ok": True}
+
 
 if __name__ == "__main__":
     # Run in debug so you see tracebacks if anything goes wrong
