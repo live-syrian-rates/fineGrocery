@@ -7,14 +7,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: 'Inter', system-ui, sans-serif; }
-    .error { color: #dc2626; }
-    .loading { color: #6b7280; }
-    .hidden { display: none; }
-    .product-card { transition: all 0.3s ease-in-out; }
-    .product-card:hover { transform: translateY(-5px); }
-    .insight-text { background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 1rem; }
-    .insight-text::before { content: '💡'; margin-right: 0.5rem; }
-    .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #34d399; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        .error { color: #dc2626; }
+        .loading { color: #6b7280; }
+        .hidden { display: none; }
+        .product-card { transition: all 0.3s ease-in-out; }
+        .product-card:hover { transform: translateY(-5px); }
+        .insight-text { background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 1rem; }
+        .insight-text::before { content: '💡'; margin-right: 0.5rem; }
+        .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #34d399; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -70,7 +70,7 @@
                 errorMessage.classList.add('hidden');
                 productGrid.innerHTML = ''; // Clear previous results
 
-                fetch('https://finegrocery.onrender.com/products')
+                fetch('/products')
                     .then(response => {
                         if (!response.ok) {
                             throw new Error(`HTTP error! Status: ${response.status}`);
