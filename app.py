@@ -73,6 +73,11 @@ def products():
     except Exception as e:
         return make_response((f"/products failed: {e}", 500))
 
+@app.get("/test")
+def test_route():
+    return "The new code is working!"
+
 if __name__ == "__main__":
     # Run in debug so you see tracebacks if anything goes wrong
     app.run(host="0.0.0.0", port=5000, debug=True)
+
