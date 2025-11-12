@@ -1,6 +1,9 @@
 # app.py — minimal & robust Flask server
 import os, csv, json, re
 from flask import Flask, jsonify, make_response
+from flask import send_from_directory
+
+
 
 app = Flask(__name__)
 
@@ -40,9 +43,9 @@ def clean_price(raw: str) -> float:
 def health():
     return {"ok": True, "csv": CSV_PATH or "NOT FOUND"}
 
-@app.get("/")
-def root():
-    return f"Server OK. CSV: {CSV_PATH or 'NOT FOUND'}  • Try /products"
+@app.route('/')
+def serve_index():
+    return send_from_directory('.', 'index.html')
 
 @app.get("/products")
 def products():
@@ -71,8 +74,6 @@ def products():
         return make_response((f"/products failed: {e}", 500))
 
 # ... all your other routes like /products ...
-
-
 
 if __name__ == "__main__":
     # Run in debug so you see tracebacks if anything goes wrong
