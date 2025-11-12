@@ -4,16 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Smart Grocer</title>
-    <!-- We use Tailwind CSS for modern, clean styling without any complex setup -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* A little custom font for a more professional feel */
         body { font-family: 'Inter', system-ui, sans-serif; }
+    .error { color: #dc2626; }
+    .loading { color: #6b7280; }
+    .hidden { display: none; }
+    .product-card { transition: all 0.3s ease-in-out; }
+    .product-card:hover { transform: translateY(-5px); }
+    .insight-text { background-color: #f0fdf4; border-left: 4px solid #10b981; padding: 1rem; }
+    .insight-text::before { content: '💡'; margin-right: 0.5rem; }
+    .spinner { border: 4px solid #f3f4f6; border-top: 4px solid #34d399; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
-
-    <!-- Header: Clean and simple branding -->
     <header class="bg-white shadow-sm border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div class="flex items-center justify-between">
@@ -22,11 +30,7 @@
             </div>
         </div>
     </header>
-
-    <!-- Main Content Area -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
-        <!-- Search Bar: The primary interaction point -->
         <section class="mb-8">
             <div class="relative max-w-md mx-auto">
                 <input 
@@ -36,102 +40,89 @@
                     class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent text-sm"
                 >
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <!-- Simple SVG icon for search -->
                     <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </div>
             </div>
         </section>
-
-        <!-- Product Grid: This is where your data will appear -->
         <section id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- A loading message for the user -->
-            <div id="loading-message" class="col-span-full text-center text-gray-500">
-                <p>Loading fresh products...</p>
+            <div id="loading-message" class="col-span-full text-center">
+                <div class="spinner"></div>
+                <p class="loading mt-4">Loading fresh products...</p>
             </div>
-            <!-- An error message, just in case -->
-            <div id="error-message" class="col-span-full text-center text-red-500 hidden">
-                <p>Oops! We couldn't load the products. Please check back later.</p>
+            <div id="error-message" class="col-span-full text-center hidden">
+                <p class="error">An error occurred. Please check the console for details.</p>
             </div>
         </section>
-
     </main>
-
-    <!-- JavaScript: The Brains of the Operation -->
     <script>
-        // This is where your app's logic lives.
         document.addEventListener('DOMContentLoaded', () => {
             const productGrid = document.getElementById('product-grid');
             const searchInput = document.getElementById('search-input');
             const loadingMessage = document.getElementById('loading-message');
             const errorMessage = document.getElementById('error-message');
-            let allProducts = []; // We'll store all products here for filtering
+            let allProducts = [];
 
             // --- Fetch Data from Your Live Backend ---
-            fetch('https://finegrocery.onrender.com/products')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json(); // Convert the response to JSON
-                })
-                .then(products => {
-                    allProducts = products; // Store the products
-                    loadingMessage.classList.add('hidden'); // Hide "Loading..."
-                    renderProducts(products); // Display them on the page
-                })
-                .catch(error => {
-                    console.error('Fetch error:', error);
-                    loadingMessage.classList.add('hidden'); // Hide "Loading..."
-                    errorMessage.classList.remove('hidden'); // Show "Oops!"
-                });
+            const fetchProducts = () => {
+                loadingMessage.classList.remove('hidden');
+                errorMessage.classList.add('hidden');
+                productGrid.innerHTML = ''; // Clear previous results
 
-            // --- Render Products to the Page ---
-            function renderProducts(productsToRender) {
-                // Clear any existing products
-                productGrid.innerHTML = ''; 
+                fetch('https://finegrocery.onrender.com/products')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(products => {
+                        allProducts = products;
+                        renderProducts(products);
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                        errorMessage.classList.remove('hidden');
+                        loadingMessage.classList.add('hidden');
+                    });
+            };
 
+            const renderProducts = (productsToRender) => {
                 if (productsToRender.length === 0) {
                     productGrid.innerHTML = `<p class="col-span-full text-center text-gray-500">No products found.</p>`;
                     return;
                 }
-
                 productsToRender.forEach(product => {
-                    // We'll use a placeholder name if one doesn't exist
                     const productName = Object.keys(product)[0] || 'Unnamed Product';
                     const productDetails = product[productName];
 
-                    // Create the HTML for a single product card
                     const productCard = document.createElement('div');
-                    productCard.className = 'bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow duration-300';
+                    productCard.className = 'product-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg';
                     productCard.innerHTML = `
                         <h3 class="text-lg font-semibold text-gray-800 mb-2">${productName}</h3>
                         <p class="text-2xl font-bold text-emerald-600 mb-4">$${(productDetails.price || 0).toFixed(2)}</p>
-                        
-                        <!-- The "AI Insight" Button -->
-                        <button 
-                            onclick="toggleInsight('${productName.replace(/'/g, "\\'")}')" 
-                            class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium py-2 px-4 rounded transition-colors duration-200"
-                        >
-                            Show AI Insight
-                        </button>
-                        
-                        <!-- The Hidden AI Insight Text -->
-                        <div id="insight-${productName.replace(/\s+/g, '-')}" class="hidden mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded text-sm text-emerald-800">
-                            ${generateInsight(productName)}
+                        <div class="mt-4 space-y-2">
+                            <button 
+                                onclick="toggleInsight('${productName.replace(/'/g, "\\'")}')" 
+                                class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium py-2 px-4 rounded transition-colors duration-200"
+                            >
+                                Show AI Insight
+                            </button>
+                            <div id="insight-${productName.replace(/\s+/g, '-')}" class="insight-text hidden rounded text-sm">
+                                ${generateInsight(productName)}
+                            </div>
                         </div>
                     `;
                     productGrid.appendChild(productCard);
                 });
-            }
+            };
 
-            // --- The Creative "AI" Insight Generator ---
-            function generateInsight(productName) {
+            const generateInsight = (productName) => {
                 const insights = {
                     'tomatoes': "Ripe tomatoes have a rich, earthy smell. Store them at room temperature, away from direct sunlight.",
                     'cucumber': "Choose cucumbers that are firm and dark green. They're best kept in the refrigerator's crisper drawer.",
-                    'onion': "Onions should be firm and have dry, papery skin. Store them in a cool, dark place, not the fridge.",
+                    'onion': "Onions should be firm and have dry, papery skin. Store them in a cool, dark place, not in the fridge.",
                     'potato': "Avoid potatoes with green spots or sprouts. Store them in a cool, dark place to keep them fresh longer.",
                     'default': "This is a great choice! Remember to check for freshness and enjoy it in your favorite recipe."
                 };
@@ -142,9 +133,8 @@
                     }
                 }
                 return insights['default'];
-            }
+            };
 
-            // --- Toggle Insight Visibility ---
             window.toggleInsight = function(productName) {
                 const insightId = `insight-${productName.replace(/\s+/g, '-')}`;
                 const insightDiv = document.getElementById(insightId);
@@ -162,8 +152,10 @@
                 });
                 renderProducts(filteredProducts);
             });
+
+            // --- Initial Load ---
+            fetchProducts();
         });
     </script>
-
 </body>
 </html>
