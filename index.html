@@ -45,117 +45,118 @@
                     </svg>
                 </div>
             </div>
-        </section>
-        <section id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div id="loading-message" class="col-span-full text-center">
-                <div class="spinner"></div>
-                <p class="loading mt-4">Loading fresh products...</p>
-            </div>
-            <div id="error-message" class="col-span-full text-center hidden">
-                <p class="error">An error occurred. Please check the console for details.</p>
-            </div>
-        </section>
-    </main>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const productGrid = document.getElementById('product-grid');
-            const searchInput = document.getElementById('search-input');
-            const loadingMessage = document.getElementById('loading-message');
-            const errorMessage = document.getElementById('error-message');
-            let allProducts = [];
+        </div>
+    </section>
+    <section id="product-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="loading-message" class="col-span-full text-center">
+            <div class="spinner"></div>
+            <p class="loading mt-4">Loading fresh products...</p>
+        </div>
+        <div id="error-message" class="col-span-full text-center hidden">
+            <p class="error">An error occurred. Please check the console for details.</p>
+        </div>
+    </section>
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const productGrid = document.getElementById('product-grid');
+        const searchInput = document.getElementById('search-input');
+        const loadingMessage = document.getElementById('loading-message');
+        const errorMessage = document.getElementById('error-message');
+        let allProducts = [];
 
-            // --- Fetch Data from Your Live Backend ---
-            const fetchProducts = () => {
-                loadingMessage.classList.remove('hidden');
-                errorMessage.classList.add('hidden');
-                productGrid.innerHTML = ''; // Clear previous results
+        // --- Fetch Data from Your Live Backend ---
+        const fetchProducts = () => {
+            loadingMessage.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            productGrid.innerHTML = ''; // Clear previous results
 
-                fetch('/products')
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! Status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
-                    .then(products => {
-                        allProducts = products;
-                        renderProducts(products);
-                    })
-                    .catch(error => {
-                        console.error('Fetch error:', error);
-                        errorMessage.classList.remove('hidden');
-                        loadingMessage.classList.add('hidden');
-                    });
-            };
-
-            const renderProducts = (productsToRender) => {
-                if (productsToRender.length === 0) {
-                    productGrid.innerHTML = `<p class="col-span-full text-center text-gray-500">No products found.</p>`;
-                    return;
-                }
-                productsToRender.forEach(product => {
-                    const productName = Object.keys(product)[0] || 'Unnamed Product';
-                    const productDetails = product[productName];
-
-                    const productCard = document.createElement('div');
-                    productCard.className = 'product-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg';
-                    productCard.innerHTML = `
-                        <h3 class="text-lg font-semibold text-gray-800 mb-2">${productName}</h3>
-                        <p class="text-2xl font-bold text-emerald-600 mb-4">$${(productDetails.price || 0).toFixed(2)}</p>
-                        <div class="mt-4 space-y-2">
-                            <button 
-                                onclick="toggleInsight('${productName.replace(/'/g, "\\'")}')" 
-                                class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium py-2 px-4 rounded transition-colors duration-200"
-                            >
-                                Show AI Insight
-                            </button>
-                            <div id="insight-${productName.replace(/\s+/g, '-')}" class="insight-text hidden rounded text-sm">
-                                ${generateInsight(productName)}
-                            </div>
-                        </div>
-                    `;
-                    productGrid.appendChild(productCard);
-                });
-            };
-
-            const generateInsight = (productName) => {
-                const insights = {
-                    'tomatoes': "Ripe tomatoes have a rich, earthy smell. Store them at room temperature, away from direct sunlight.",
-                    'cucumber': "Choose cucumbers that are firm and dark green. They're best kept in the refrigerator's crisper drawer.",
-                    'onion': "Onions should be firm and have dry, papery skin. Store them in a cool, dark place, not in the fridge.",
-                    'potato': "Avoid potatoes with green spots or sprouts. Store them in a cool, dark place to keep them fresh longer.",
-                    'default': "This is a great choice! Remember to check for freshness and enjoy it in your favorite recipe."
-                };
-                const lowerName = productName.toLowerCase();
-                for (const key in insights) {
-                    if (lowerName.includes(key)) {
-                        return insights[key];
+            fetch('/products')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
                     }
-                }
-                return insights['default'];
-            };
-
-            window.toggleInsight = function(productName) {
-                const insightId = `insight-${productName.replace(/\s+/g, '-')}`;
-                const insightDiv = document.getElementById(insightId);
-                if (insightDiv) {
-                    insightDiv.classList.toggle('hidden');
-                }
-            };
-
-            // --- Live Search Filtering ---
-            searchInput.addEventListener('input', (e) => {
-                const searchTerm = e.target.value.toLowerCase();
-                const filteredProducts = allProducts.filter(product => {
-                    const productName = Object.keys(product)[0] || '';
-                    return productName.toLowerCase().includes(searchTerm);
+                    return response.json();
+                })
+                .then(products => {
+                    allProducts = products;
+                    renderProducts(products);
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    errorMessage.classList.remove('hidden');
+                    loadingMessage.classList.add('hidden');
                 });
-                renderProducts(filteredProducts);
-            });
+        };
 
-            // --- Initial Load ---
-            fetchProducts();
+        const renderProducts = (productsToRender) => {
+            if (productsToRender.length === 0) {
+                productGrid.innerHTML = `<p class="col-span-full text-center text-gray-500">No products found.</p>`;
+                return;
+            }
+            productsToRender.forEach(product => {
+                const productName = Object.keys(product)[0] || 'Unnamed Product';
+                const productDetails = product[productName];
+
+                const productCard = document.createElement('div');
+                productCard.className = 'product-card bg-white rounded-lg shadow-md p-6 hover:shadow-lg';
+                productCard.innerHTML = `
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">${productName}</h3>
+                    <p class="text-2xl font-bold text-emerald-600 mb-4">$${(productDetails.price || 0).toFixed(2)}</p>
+                    <div class="mt-4 space-y-2">
+                        <button 
+                            onclick="toggleInsight('${productName.replace(/'/g, "\\'")}')" 
+                            class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium py-2 px-4 rounded transition-colors duration-200"
+                        >
+                            Show AI Insight
+                        </button>
+                        <div id="insight-${productName.replace(/\s+/g, '-')}" class="insight-text hidden rounded text-sm">
+                            ${generateInsight(productName)}
+                        </div>
+                    </div>
+                `;
+                productGrid.appendChild(productCard);
+            });
+        };
+
+        const generateInsight = (productName) => {
+            const insights = {
+                'tomatoes': "Ripe tomatoes have a rich, earthy smell. Store them at room temperature, away from direct sunlight.",
+                'cucumber': "Choose cucumbers that are firm and dark green. They're best kept in the refrigerator's crisper drawer.",
+                'onion': "Onions should be firm and have dry, papery skin. Store them in a cool, dark place, not in the fridge.",
+                'potato': "Avoid potatoes with green spots or sprouts. Store them in a cool, dark place to keep them fresh longer.",
+                'default': "This is a great choice! Remember to check for freshness and enjoy it in your favorite recipe."
+            };
+            const lowerName = productName.toLowerCase();
+            for (const key in insights) {
+                if (lowerName.includes(key)) {
+                    return insights[key];
+                }
+            }
+            return insights['default'];
+        };
+
+        window.toggleInsight = function(productName) {
+            const insightId = `insight-${productName.replace(/\s+/g, '-')}`;
+            const insightDiv = document.getElementById(insightId);
+            if (insightDiv) {
+                insightDiv.classList.toggle('hidden');
+            }
+        };
+
+        // --- Live Search Filtering ---
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filteredProducts = allProducts.filter(product => {
+                const productName = Object.keys(product)[0] || '';
+                return productName.toLowerCase().includes(searchTerm);
+            });
+            renderProducts(filteredProducts);
         });
-    </script>
+
+        // --- Initial Load ---
+        fetchProducts();
+    });
+</script>
 </body>
 </html>
