@@ -1,19 +1,23 @@
-# app.py — minimal & robust Flask server
+# app.py — The Smart Grocer Backend
 import os, csv, json, re
 from flask import Flask, jsonify, make_response, send_from_directory
-from flask_cors import CORS # Make sure this import is here
+from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app) # <-- THIS LINE IS CRITICAL
 
-# ----- Resolve CSV path safely (works no matter where you run from)
-HERE = os.path.dirname(os.path.abspath(__file__))          # ...\backend
-ROOT = os.path.abspath(os.path.join(HERE, ".."))           # project root
+# --- EXPLICIT CORS CONFIGURATION ---
+# This is the most reliable way to fix the connection issue.
+# It allows your frontend to talk to your backend.
+CORS(app, resources={r"/*": {"origins": "*"}})
+
+# ----- Resolve CSV path safely -----
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.abspath(os.path.join(HERE, ".."))
 CANDIDATES = [
-    os.environ.get("PRODUCTS_CSV"),                        # optional override
-    os.path.join(HERE, "products.csv"),                    # backend/products.csv
-    os.path.join(ROOT, "products.csv"),                    # root/products.csv
-    os.path.join(ROOT, "products - Copy.csv"),             # root/products - Copy.csv
+    os.environ.get("PRODUCTS_CSV"),
+    os.path.join(HERE, "products.csv"),
+    os.path.join(ROOT, "products.csv"),
+    os.path.join(ROOT, "products - Copy.csv"),
 ]
 CSV_PATH = next((p for p in CANDIDATES if p and os.path.exists(p)), None)
 
@@ -21,17 +25,12 @@ CSV_PATH = next((p for p in CANDIDATES if p and os.path.exists(p)), None)
 _ARABIC_INDIC = str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")
 
 def strip_citations(s: str) -> str:
-    # remove patterns like:  [cite: 7]
     return re.sub(r"\s*\[cite:\s*[^]]+\]\s*", "", s or "")
 
 def normalize_digits(s: str) -> str:
     return (s or "").translate(_ARABIC_INDIC)
 
 def clean_price(raw: str) -> float:
-    """
-    Accept '7.25', '7,25', ' 7.25 [cite: 7]', '٧٫٢٥', 'USD 7.25', etc.
-    Extracts the first numeric token and converts comma to dot.
-    """
     s = normalize_digits(strip_citations(str(raw))).strip()
     m = re.search(r"[-+]?\d+(?:[.,]\d+)?", s)
     if not m:
@@ -59,11 +58,9 @@ def products():
             if not r.fieldnames:
                 raise ValueError("CSV has no headers.")
             for row in r:
-                # Clean all string fields (remove [cite: ...])
                 for k, v in list(row.items()):
                     if isinstance(v, str):
                         row[k] = strip_citations(v).strip()
-                # Robust price parsing
                 row["price (جملة الجملة (دولار))"] = clean_price(
                     row.get("price (جملة الجملة (دولار))", "")
                 )
@@ -71,13 +68,8 @@ def products():
 
         return jsonify(rows)
     except Exception as e:
+        # This will help us debug in the browser's console
         return make_response((f"/products failed: {e}", 500))
 
-@app.get("/test")
-def test_route():
-    return "The new code is working!"
-
 if __name__ == "__main__":
-    # Run in debug so you see tracebacks if anything goes wrong
     app.run(host="0.0.0.0", port=5000, debug=True)
-
