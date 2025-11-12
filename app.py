@@ -6,7 +6,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 
 # --- EXPLICIT CORS CONFIGURATION ---
-# This allows your frontend to talk to your backend.
+# This is the most reliable way to fix the connection issue.
 CORS(app, resources={r"/*": {"origins": "*"}})
 
 # ----- Resolve CSV path safely -----
@@ -65,7 +65,12 @@ def products():
                 )
                 rows.append(row)
 
-        return jsonify(rows)
+        # --- Create a manual JSON response to ensure correct encoding ---
+        response = make_response(
+            json.dumps(rows, ensure_ascii=False, indent=4),
+            mimetype='application/json; charset=utf-8'
+        )
+        return response
     except Exception as e:
         # This will help us debug in the browser's console
         return make_response((f"/products failed: {e}", 500))
